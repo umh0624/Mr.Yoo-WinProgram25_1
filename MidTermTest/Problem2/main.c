@@ -1,27 +1,96 @@
+ï»¿#include <stdio.h>
 #include <windows.h>
-#include <stdio.h>
 
 void move_cursor(int row, int col) {
     printf("\033[%d;%dH", row, col);
 }
 
-int main() {
-    system("cls");
-    SetConsoleOutputCP(65001); // UTF-8 ¼³Á¤
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+void set_color(int text, int bg) {
+    printf("\033[3%d;4%dm", text, bg);
+}
 
-    int width = 80;
-    int height = 25;
+void reset_color() {
+    printf("\033[0m");
+}
 
-    for (int y = 1; y < height; y++) {  // À§ÂÊ 1ÁÙ Á¦¿Ü
-        move_cursor(y + 1, 3);  // ÄÜ¼ÖÀº 1ºÎÅÍ ½ÃÀÛÇÏ¹Ç·Î +1 º¸Á¤, ÁÂÃø ¿©¹é 2Ä­ ¡æ col = 3
-        SetConsoleTextAttribute(hConsole, BACKGROUND_BLUE);
-        for (int x = 0; x < width - 4; x++) {  // ÁÂ¿ì 2Ä­¾¿ ¡æ ÃÑ 4Ä­ Á¦¿Ü
+// íŒŒëž€ìƒ‰ ë°”íƒ•í™”ë©´ ê·¸ë¦¬ê¸°
+void drawBackground() {
+    int width = 80, height = 25;
+    int leftMargin = 2;
+    int topMargin = 1;
+
+    set_color(0, 4);  // ê²€ì • ê¸€ìž, íŒŒëž€ ë°°ê²½
+
+    for (int y = topMargin + 1; y <= height - 1; y++) {  // ìž‘ì—…í‘œì‹œì¤„ 1ì¹¸ ì œì™¸
+        move_cursor(y, leftMargin + 1);
+        for (int x = 0; x < width - leftMargin * 2; x++) {
             printf(" ");
         }
-        SetConsoleTextAttribute(hConsole, 7); // »ö»ó ÃÊ±âÈ­
     }
 
-    move_cursor(26, 1); // Ä¿¼­ ¸Ç ¹ØÀ¸·Î
+    reset_color();
+}
+
+// ìž‘ì—… í‘œì‹œì¤„ (í°ìƒ‰, 1ì¹¸) ê·¸ë¦¬ê¸°
+void drawTaskbar() {
+    int width = 80;
+    int height = 25;
+    int leftMargin = 2;
+    int taskbarY = height; // ê°€ìž¥ í•˜ë‹¨
+
+    set_color(0, 7);  // ê²€ì • ê¸€ìž, í°ìƒ‰ ë°°ê²½
+    move_cursor(taskbarY, leftMargin + 1);
+    for (int x = 0; x < width - leftMargin * 2; x++) {
+        printf(" ");
+    }
+    reset_color();
+}
+
+// ì½˜ì†” ìœˆë„ìš° ê·¸ë¦¬ê¸°
+void drawConsoleWindow(int startX, int startY, int width, int height, const char* title, int color) {
+    set_color(7, color);  // í° ê¸€ìž, ë°°ê²½ìƒ‰
+
+    for (int y = 0; y < height; y++) {
+        move_cursor(startY + y, startX);
+        for (int x = 0; x < width; x++) {
+            if (y == 0 || y == height - 1) {
+                printf("-");
+            }
+            else if (x == 0 || x == width - 1) {
+                printf("|");
+            }
+            else {
+                printf(" ");
+            }
+        }
+    }
+
+    // ì œëª©
+    move_cursor(startY, startX + 2);
+    printf("%s", title);
+
+    // X ë²„íŠ¼
+    set_color(7, 1);  // í° ê¸€ìž, ë¹¨ê°„ ë°°ê²½
+    move_cursor(startY, startX + width - 4);
+    printf(" X ");
+    reset_color();
+}
+
+int main() {
+    system("cls");
+
+    drawBackground();        // íŒŒëž€ ë°°ê²½ ë¨¼ì € ê·¸ë¦¬ê¸°
+    drawTaskbar();           // í•˜ë‹¨ ìž‘ì—…í‘œì‹œì¤„ ì¶”ê°€
+
+    // ìœˆë„ìš° 1: cyan
+    drawConsoleWindow(5, 3, 30, 10, "Cyan Window", 6);      // Cyan (color 6)
+
+    // ìœˆë„ìš° 2: magenta
+    drawConsoleWindow(25, 8, 30, 10, "Magenta Window", 5);  // Magenta (color 5)
+
+    // ìœˆë„ìš° 3: brown
+    drawConsoleWindow(45, 5, 30, 12, "Brown Window", 3);    // Brown (color 3)
+
+    move_cursor(26, 1);  // ì»¤ì„œ ì•„ëž˜ë¡œ ë‚´ë¦¬ê¸°
     return 0;
 }
